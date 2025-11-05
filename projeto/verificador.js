@@ -1,22 +1,22 @@
-import readline from 'readline';
-import pkg from 'pg';
-import fs from 'fs';
+import readline from "readline";
+import pkg from "pg";
+import fs from "fs";
 const { Pool } = pkg;
 
-const path = '../csvs'; 
+const path = "../csvs";
 // aqui é apenas o objeto da biblioteca node que se comunica com o banco
 const pool = new Pool({
-  user: 'postgres',
-  password: 'lindo',
-  host: 'localhost',
+  user: "postgres",
+  password: "admin@123",
+  host: "localhost",
   port: 5432,
-  database: 'teste_dE_depencia_funcional'
+  database: "teste_dE_depencia_funcional",
 });
 
 // aqui é o objeto da biblioteca node que lê entradas do terminal
 const rl = readline.createInterface({
   input: process.stdin,
-  output: process.stdout
+  output: process.stdout,
 });
 
 // função que pega todas as tabelas do banco
@@ -52,7 +52,7 @@ async function pegaColunas(tabela) {
   return colunas;
 }
 
- // função que transforma um arquivo CSV em uma tabela no banco
+// função que transforma um arquivo CSV em uma tabela no banco
 async function transformarCsv(nomeArquivo) {
   let caminhoCompleto = "";
   for (let i = 0; i < path.length; i++) {
@@ -148,7 +148,9 @@ async function menu() {
   const client = await pool.connect();
 
   function mostraMenu() {
-    console.log("\nInsira o número da tabela que deseja verificar, insira uma nova tabela ou saia:");
+    console.log(
+      "\nInsira o número da tabela que deseja verificar, insira uma nova tabela ou saia:"
+    );
     for (let i = 0; i < tabelas.length; i++) {
       console.log(`${i + 1} - ${tabelas[i]}`);
     }
@@ -167,45 +169,43 @@ async function menu() {
         client.release();
         await pool.end();
         return;
-      }
-
-      else if (num === inserir) {
+      } else if (num === inserir) {
         fs.readdir(path, async function (err, arquivos) {
           if (err) {
-            console.log('Erro ao ler a pasta:', err);
+            console.log("Erro ao ler a pasta:", err);
             return;
           }
 
-          console.log('\nArquivos encontrados na pasta csvs:');
+          console.log("\nArquivos encontrados na pasta csvs:");
           for (let i = 0; i < arquivos.length; i++) {
-            console.log((i + 1) + ' - ' + arquivos[i]);
+            console.log(i + 1 + " - " + arquivos[i]);
           }
 
-          rl.question('Escolha o número do arquivo CSV: ', async function (opcao) {
-            const indice = parseInt(opcao);
-            if (indice > 0 && indice <= arquivos.length) {
-              const nomeArquivo = arquivos[indice - 1];
-              await transformarCsv(nomeArquivo);
-            } else {
-              console.log('Número inválido!');
-              menu();
+          rl.question(
+            "Escolha o número do arquivo CSV: ",
+            async function (opcao) {
+              const indice = parseInt(opcao);
+              if (indice > 0 && indice <= arquivos.length) {
+                const nomeArquivo = arquivos[indice - 1];
+                await transformarCsv(nomeArquivo);
+              } else {
+                console.log("Número inválido!");
+                menu();
+              }
             }
-          });
+          );
         });
-      }
-
-      else if (num >= 1 && num <= tabelas.length) {
+      } else if (num >= 1 && num <= tabelas.length) {
         const tabelaEscolhida = tabelas[num - 1];
         const colunas = await pegaColunas(tabelaEscolhida);
-        console.log(`\nColunas da tabela ${tabelaEscolhida}: ${colunas.join(", ")}`);
+        console.log(
+          `\nColunas da tabela ${tabelaEscolhida}: ${colunas.join(", ")}`
+        );
         mostraMenu();
-      }
-
-      else {
+      } else {
         console.log("Opção inválida!");
         mostraMenu();
       }
-
     });
   }
 
