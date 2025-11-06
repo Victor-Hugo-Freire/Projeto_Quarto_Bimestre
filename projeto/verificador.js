@@ -237,7 +237,7 @@ function geraCombinacoes(colunas) {
   return combinacoes;
 }
 
-// Função principal para verificar dependências funcionais
+// Função principal para verificar dependências funcionais só tem um porem é que ele mostra dados redundantes.
 async function verificaDependenciasComMensagem(tabela) {
   const colunasTabela = await pegaColunas(tabela);
   const client = await pool.connect();
