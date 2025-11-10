@@ -161,14 +161,13 @@ async function menu() {
     console.log(`${sair} - Sair`);
 
     rl.question("Escolha uma opção: ", async (opcao) => {
-      const num = parseInt(opcao);
+      let num = parseInt(opcao);
 
       if (num === sair) {
-        console.log("Saindo...");
         rl.close();
         client.release();
         await pool.end();
-        return;
+        console.log("Saindo...");
       } else if (num === inserir) {
         fs.readdir(path, async function (err, arquivos) {
           if (err) {
