@@ -128,7 +128,7 @@ async function transformarCsv(nomeArquivo) {
     const linhaDados = dados[i];
     let insertSQL = `INSERT INTO ${nomeTabela} VALUES (`;
     for (let j = 0; j < linhaDados.length; j++) {
-      let valorSeguro = linhaDados[j].replace(/'/g, "''");
+      let valorSeguro = linhaDados[j].split("'").join("''");
       insertSQL += `'${valorSeguro}'`;
       if (j < linhaDados.length - 1) insertSQL += ",";
     }
