@@ -35,8 +35,7 @@ async function pegaTabelas() {
   }
   return tabelas;
 }
-
-// pega todas as colunas de uma tabela específica
+//pega todas as colunas de uma tabela específica
 async function pegaColunas(tabela) {
   const client = await pool.connect();
   const verificarCR = await client.query(`
@@ -143,7 +142,7 @@ async function transformarCsv(nomeArquivo) {
   menu();
 }
 
-// aqui começa o menu interativo onde a pessoa escolhe o que fazer
+//aqui começa o menu interativo onde a pessoa escolhe o que fazer por numeros e os numeros sejam gerado intuitivamente
 async function menu() {
   const tabelas = await pegaTabelas();
   const client = await pool.connect();
@@ -196,21 +195,160 @@ async function menu() {
             }
           );
         });
+      } else if (num >= 1 Skip to content
+Navigation Menu
+gabrielgomesortiz
+Projeto_Quarto_Bimestre
+
+Type / to search
+Code
+Issues
+Pull requests
+1
+Actions
+Projects
+Security
+Insights
+É molodoy ou n é? #5
+Resolving conflicts between diekred:main and gabrielgomesortiz:main and committing changes  diekred:main
+1 conflicting file
+verificador.js
+projeto/verificador.js
+projeto/verificador.js2 conflicts 
+  
+168
+        rl.close();
+169
+        client.release();
+170
+        await pool.end();
+171
+        return;
+172
+      } else if (num === inserir) {
+173
+        fs.readdir(path, async function (err, arquivos) {
+174
+          if (err) {
+175
+            console.log("Erro ao ler a pasta:", err);
+176
+            return;
+177
+          }
+178
+​
+179
+          console.log("\nArquivos encontrados na pasta csvs:");
+180
+          for (let i = 0; i < arquivos.length; i++) {
+181
+            console.log(i + 1 + " - " + arquivos[i]);
+182
+          }
+183
+​
+184
+          rl.question(
+185
+            "Escolha o número do arquivo CSV: ",
+186
+            async function (opcao) {
+187
+              const indice = parseInt(opcao);
+188
+              if (indice > 0 && indice <= arquivos.length) {
+189
+                const nomeArquivo = arquivos[indice - 1];
+190
+                await transformarCsv(nomeArquivo);
+191
+              } else {
+192
+                console.log("Número inválido!");
+193
+                menu();
+194
+              }
+195
+            }
+196
+          );
+197
+        });
+198
       } else if (num >= 1 && num <= tabelas.length) {
+199
+        const tabelaEscolhida = tabelas[num - 1];
+200
+        const colunas = await pegaColunas(tabelaEscolhida);
+ |  | 
+201
+ 
+202
+ 
+        console.log(`\nColunas da tabela ${tabelaEscolhida}: ${colunas.join(", ")}`);
+203
+ 
+        // descobrir tempo de execução
+204
+ 
+        let inicio = Date.now();
+205
+ 
+        let dependenciasValidas = await verificaDependenciasComMensagem(tabelaEscolhida);
+206
+ 
+217
+        let fim = Date.now();
+218
+        console.log(`Tempo de execução da verificação: ${(fim - inicio) / 1000} segundos`);
+219
+        //
+220
+        rl.question(
+221
+          "deseja retirar as colunas redundantes? (sim/não): ",
+222
+          async function (opcao) {
+223
+            if (opcao.toLowerCase() === "sim") {
+224
+              //
+225
+              let inicio = Date.now();
+226
+              await retirarRedundancia(dependenciasValidas);
+227
+              let fim = Date.now();
+228
+              console.log(`Tempo de execução da verificação: ${(fim - inicio) / 1000} segundos`);
+229
+              //
+Resolve Conflicts · Pull Request #5 · gabrielgomesortiz/Projeto_Quarto_Bimestre&& num <= tabelas.length) {
         const tabelaEscolhida = tabelas[num - 1];
         const colunas = await pegaColunas(tabelaEscolhida);
-        console.log(
-          `\nColunas da tabela ${tabelaEscolhida}: ${colunas.join(", ")}`
-        );
-
-        // 🔹 diferença 1: medir tempo
+        console.log(`\nColunas da tabela ${tabelaEscolhida}: ${colunas.join(", ")}`);
+        // descobrir tempo de execução
         let inicio = Date.now();
-        let dependenciasValidas = await verificaDependenciasComMensagem(
-          tabelaEscolhida
-        );
+        let dependenciasValidas = await verificaDependenciasComMensagem(tabelaEscolhida);
         let fim = Date.now();
-        console.log(
-          `Tempo de execução da verificação: ${(fim - inicio) / 1000} segundos`
+        console.log(`Tempo de execução da verificação: ${(fim - inicio) / 1000} segundos`);
+        //
+        rl.question(
+          "deseja retirar as colunas redundantes? (sim/não): ",
+          async function (opcao) {
+            if (opcao.toLowerCase() === "sim") {
+              //
+              let inicio = Date.now();
+              await retirarRedundancia(dependenciasValidas);
+              let fim = Date.now();
+              console.log(`Tempo de execução da verificação: ${(fim - inicio) / 1000} segundos`);
+              //
+            } else {
+              menu();
+            }
+          }
         );
 
         // 🔹 diferença 2: perguntar se deseja retirar redundâncias
@@ -239,7 +377,8 @@ async function menu() {
   mostraMenu();
 }
 
-// Função que gera todas as combinações de 1 a 3 colunas
+// função que gera todas as combinações de 1 a 3 colunas para o lado esquerdo
+// Função externa para gerar combinações de 1 a 3 colunas
 function geraCombinacoes(colunas) {
   let combinacoes = [];
   // 1 coluna
@@ -263,7 +402,7 @@ function geraCombinacoes(colunas) {
   return combinacoes;
 }
 
-// Função principal para verificar dependências funcionais
+// Função principal para verificar dependências funcionais só tem um porem é que ele mostra dados redundantes.
 async function verificaDependenciasComMensagem(tabela) {
   const colunasTabela = await pegaColunas(tabela);
   const client = await pool.connect();
@@ -327,4 +466,157 @@ async function verificaDependenciasComMensagem(tabela) {
   return dependenciasValidas;
 }
 
+
+async function retirarRedundancia(dependenciasValidas) {
+  function copiaDependencias(deps) {
+    let c = [];
+    for (let i = 0; i < deps.length; i++) {
+      let item = { esquerda: [], direita: deps[i].direita };
+      for (let j = 0; j < deps[i].esquerda.length; j++) {
+        item.esquerda.push(deps[i].esquerda[j]);
+      }
+      c.push(item);
+    }
+    return c;
+  }
+
+  function fechamentoAtributos(conjunto, dependencias) {
+    let fechamento = [];
+    for (let i = 0; i < conjunto.length; i++) {
+      fechamento.push(conjunto[i]);
+    }
+
+    let alterou = true;
+    while (alterou) {
+      alterou = false;
+      for (let i = 0; i < dependencias.length; i++) {
+        let dep = dependencias[i];
+        let contemTodos = true;
+        for (let j = 0; j < dep.esquerda.length; j++) {
+          let achou = false;
+          for (let k = 0; k < fechamento.length; k++) {
+            if (dep.esquerda[j] === fechamento[k]) {
+              achou = true;
+            }
+          }
+          if (!achou) {
+            contemTodos = false;
+          }
+        }
+        if (contemTodos) {
+          let existe = false;
+          for (let k = 0; k < fechamento.length; k++) {
+            if (fechamento[k] === dep.direita) {
+              existe = true;
+            }
+          }
+          if (!existe) {
+            fechamento.push(dep.direita);
+            alterou = true;
+          }
+        }
+      }
+    }
+    return fechamento;
+  }
+
+  let F = copiaDependencias(dependenciasValidas);
+
+  let naoTriviais = [];
+  for (let i = 0; i < F.length; i++) {
+    let dep = F[i];
+    let trivial = false;
+    for (let j = 0; j < dep.esquerda.length; j++) {
+      if (dep.esquerda[j] === dep.direita) {
+        trivial = true;
+      }
+    }
+    if (!trivial) {
+      naoTriviais.push(dep);
+    }
+  }
+  F = naoTriviais;
+
+  for (let i = 0; i < F.length; i++) {
+    let dep = F[i];
+    let reduziuAlgo = true;
+    while (reduziuAlgo) {
+      reduziuAlgo = false;
+      for (let a = 0; a < dep.esquerda.length; a++) {
+        if (dep.esquerda.length <= 1) break;
+        let candidato = [];
+        for (let x = 0; x < dep.esquerda.length; x++) {
+          if (x !== a) candidato.push(dep.esquerda[x]);
+        }
+        let outras = [];
+        for (let j = 0; j < F.length; j++) {
+          if (j !== i) {
+            outras.push(F[j]);
+          } else {
+            outras.push({ esquerda: candidato, direita: dep.direita });
+          }
+        }
+        let fechamento = fechamentoAtributos(candidato, outras);
+        let contem = false;
+        for (let k = 0; k < fechamento.length; k++) {
+          if (fechamento[k] === dep.direita) {
+            contem = true;
+            break;
+          }
+        }
+        if (contem) {
+          let novaEsquerda = [];
+          for (let y = 0; y < dep.esquerda.length; y++) {
+            if (y !== a) novaEsquerda.push(dep.esquerda[y]);
+          }
+          dep.esquerda = novaEsquerda;
+          reduziuAlgo = true;
+          a = -1;
+        }
+      }
+    }
+  }
+
+  let mudou = true;
+  while (mudou) {
+    mudou = false;
+    for (let i = 0; i < F.length; i++) {
+      let dep = F[i];
+      let outras = [];
+      for (let j = 0; j < F.length; j++) {
+        if (j !== i) outras.push(F[j]);
+      }
+      let fechamento = fechamentoAtributos(dep.esquerda, outras);
+      let contem = false;
+      for (let k = 0; k < fechamento.length; k++) {
+        if (fechamento[k] === dep.direita) {
+          contem = true;
+          break;
+        }
+      }
+      if (contem) {
+        for (let j = i; j < F.length - 1; j++) {
+          F[j] = F[j + 1];
+        }
+        F.length = F.length - 1;
+        i = i - 1;
+        mudou = true;
+      }
+    }
+  }
+
+  console.log("\nDependências finais (cobertura canônica simplificada):");
+  for (let i = 0; i < F.length; i++) {
+    let dep = F[i];
+    let esquerdaTexto = "";
+    for (let j = 0; j < dep.esquerda.length; j++) {
+      esquerdaTexto += dep.esquerda[j];
+      if (j < dep.esquerda.length - 1) esquerdaTexto += ", ";
+    }
+    console.log(esquerdaTexto + " -> " + dep.direita);
+  }
+  console.log("Total: " + F.length + " dependências finais.\n");
+
+  menu();
+}
 menu();
