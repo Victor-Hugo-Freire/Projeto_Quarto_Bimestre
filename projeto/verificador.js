@@ -203,12 +203,31 @@ async function menu() {
           `\nColunas da tabela ${tabelaEscolhida}: ${colunas.join(", ")}`
         );
 
-        // 🔹 ADIÇÃO: medição de tempo de execução
+        // 🔹 diferença 1: medir tempo
         let inicio = Date.now();
-        await verificaDependenciasComMensagem(tabelaEscolhida);
+        let dependenciasValidas = await verificaDependenciasComMensagem(
+          tabelaEscolhida
+        );
         let fim = Date.now();
         console.log(
           `Tempo de execução da verificação: ${(fim - inicio) / 1000} segundos`
+        );
+
+        // 🔹 diferença 2: perguntar se deseja retirar redundâncias
+        rl.question(
+          "Deseja retirar as colunas redundantes? (sim/não): ",
+          async function (opcao) {
+            if (opcao.toLowerCase() === "sim") {
+              let inicio = Date.now();
+              await retirarRedundancia(dependenciasValidas);
+              let fim = Date.now();
+              console.log(
+                `Tempo de execução da remoção: ${(fim - inicio) / 1000} segundos`
+              );
+            } else {
+              menu();
+            }
+          }
         );
       } else {
         console.log("Opção inválida!");
@@ -250,37 +269,42 @@ async function verificaDependenciasComMensagem(tabela) {
   const client = await pool.connect();
   const dependenciasValidas = [];
 
-  const chavePrimaria = colunasTabela[0];
-  const outrasColunas = colunasTabela.slice(1);
+  const colunas = colunasTabela;
+  const combinacoes = geraCombinacoes(colunas);
 
-  for (let i = 0; i < outrasColunas.length; i++) {
-    dependenciasValidas.push({
-      esquerda: [chavePrimaria],
-      direita: outrasColunas[i],
-    });
-  }
-
-  const combinacoes = geraCombinacoes(outrasColunas);
-
+  // testa todas as combinações possíveis de colunas para dependências
   for (let i = 0; i < combinacoes.length; i++) {
     const ladoEsquerdo = combinacoes[i];
 
-    for (let j = 0; j < outrasColunas.length; j++) {
-      const ladoDireito = outrasColunas[j];
+    for (let j = 0; j < colunas.length; j++) {
+      const ladoDireito = colunas[j];
+
+      // não faz sentido testar A → A ou {A,B} → A se A já está no lado esquerdo
       if (ladoEsquerdo.includes(ladoDireito)) continue;
 
-      let groupByStr = "";
-      for (let k = 0; k < ladoEsquerdo.length; k++) {
-        if (k > 0) groupByStr += ", ";
-        groupByStr += '"' + ladoEsquerdo[k] + '"';
+      let condicaoNaoNula = "";
+      for (let i = 0; i < ladoEsquerdo.length; i++) {
+        if (i > 0) condicaoNaoNula += " AND ";
+        condicaoNaoNula += `"${ladoEsquerdo[i]}" IS NOT NULL`;
+      }
+      condicaoNaoNula += ` AND "${ladoDireito}" IS NOT NULL`;
+
+      let colunasSelect = "";
+      for (let i = 0; i < ladoEsquerdo.length; i++) {
+        if (i > 0) colunasSelect += ", ";
+        colunasSelect += `"${ladoEsquerdo[i]}"`;
       }
 
-      const query = `SELECT ${groupByStr}, COUNT(DISTINCT "${ladoDireito}")
-                     FROM "${tabela}" GROUP BY ${groupByStr}
-                     HAVING COUNT(DISTINCT "${ladoDireito}") > 1;`;
+      let query = `
+                  SELECT ${colunasSelect}, COUNT(DISTINCT "${ladoDireito}") AS contagem
+                  FROM "${tabela}"
+                  WHERE ${condicaoNaoNula}
+                  GROUP BY ${colunasSelect}
+                  HAVING COUNT(DISTINCT "${ladoDireito}") > 1;`;
 
       const resultadoQuery = await client.query(query);
 
+      // se não existir grupo com mais de um valor distinto, a dependência é válida
       if (resultadoQuery.rows.length === 0) {
         dependenciasValidas.push({
           esquerda: ladoEsquerdo,
@@ -297,9 +321,10 @@ async function verificaDependenciasComMensagem(tabela) {
     console.log(dep.esquerda.join(", ") + " -> " + dep.direita);
   }
 
-  console.log("Total: " + dependenciasValidas.length + " dependências válidas");
-
-  menu();
+  console.log(
+    "Total: " + dependenciasValidas.length + " dependências válidas" + "\n"
+  );
+  return dependenciasValidas;
 }
 
 menu();
