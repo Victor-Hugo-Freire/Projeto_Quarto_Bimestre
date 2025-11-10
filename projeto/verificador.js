@@ -195,7 +195,137 @@ async function menu() {
             }
           );
         });
+      } else if (num >= 1 Skip to content
+Navigation Menu
+gabrielgomesortiz
+Projeto_Quarto_Bimestre
+
+Type / to search
+Code
+Issues
+Pull requests
+1
+Actions
+Projects
+Security
+Insights
+É molodoy ou n é? #5
+Resolving conflicts between diekred:main and gabrielgomesortiz:main and committing changes  diekred:main
+1 conflicting file
+verificador.js
+projeto/verificador.js
+projeto/verificador.js2 conflicts 
+  
+168
+        rl.close();
+169
+        client.release();
+170
+        await pool.end();
+171
+        return;
+172
+      } else if (num === inserir) {
+173
+        fs.readdir(path, async function (err, arquivos) {
+174
+          if (err) {
+175
+            console.log("Erro ao ler a pasta:", err);
+176
+            return;
+177
+          }
+178
+​
+179
+          console.log("\nArquivos encontrados na pasta csvs:");
+180
+          for (let i = 0; i < arquivos.length; i++) {
+181
+            console.log(i + 1 + " - " + arquivos[i]);
+182
+          }
+183
+​
+184
+          rl.question(
+185
+            "Escolha o número do arquivo CSV: ",
+186
+            async function (opcao) {
+187
+              const indice = parseInt(opcao);
+188
+              if (indice > 0 && indice <= arquivos.length) {
+189
+                const nomeArquivo = arquivos[indice - 1];
+190
+                await transformarCsv(nomeArquivo);
+191
+              } else {
+192
+                console.log("Número inválido!");
+193
+                menu();
+194
+              }
+195
+            }
+196
+          );
+197
+        });
+198
       } else if (num >= 1 && num <= tabelas.length) {
+199
+        const tabelaEscolhida = tabelas[num - 1];
+200
+        const colunas = await pegaColunas(tabelaEscolhida);
+ |  | 
+201
+ 
+202
+ 
+        console.log(`\nColunas da tabela ${tabelaEscolhida}: ${colunas.join(", ")}`);
+203
+ 
+        // descobrir tempo de execução
+204
+ 
+        let inicio = Date.now();
+205
+ 
+        let dependenciasValidas = await verificaDependenciasComMensagem(tabelaEscolhida);
+206
+ 
+217
+        let fim = Date.now();
+218
+        console.log(`Tempo de execução da verificação: ${(fim - inicio) / 1000} segundos`);
+219
+        //
+220
+        rl.question(
+221
+          "deseja retirar as colunas redundantes? (sim/não): ",
+222
+          async function (opcao) {
+223
+            if (opcao.toLowerCase() === "sim") {
+224
+              //
+225
+              let inicio = Date.now();
+226
+              await retirarRedundancia(dependenciasValidas);
+227
+              let fim = Date.now();
+228
+              console.log(`Tempo de execução da verificação: ${(fim - inicio) / 1000} segundos`);
+229
+              //
+Resolve Conflicts · Pull Request #5 · gabrielgomesortiz/Projeto_Quarto_Bimestre&& num <= tabelas.length) {
         const tabelaEscolhida = tabelas[num - 1];
         const colunas = await pegaColunas(tabelaEscolhida);
         console.log(`\nColunas da tabela ${tabelaEscolhida}: ${colunas.join(", ")}`);
@@ -215,6 +345,23 @@ async function menu() {
               let fim = Date.now();
               console.log(`Tempo de execução da verificação: ${(fim - inicio) / 1000} segundos`);
               //
+            } else {
+              menu();
+            }
+          }
+        );
+
+        // 🔹 diferença 2: perguntar se deseja retirar redundâncias
+        rl.question(
+          "Deseja retirar as colunas redundantes? (sim/não): ",
+          async function (opcao) {
+            if (opcao.toLowerCase() === "sim") {
+              let inicio = Date.now();
+              await retirarRedundancia(dependenciasValidas);
+              let fim = Date.now();
+              console.log(
+                `Tempo de execução da remoção: ${(fim - inicio) / 1000} segundos`
+              );
             } else {
               menu();
             }
