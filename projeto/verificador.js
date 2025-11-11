@@ -1,3 +1,17 @@
+/*
+ordem de execução do projeto
+
+1. primeiro pensamos em conectar o Node.js com o banco PostgreSQL, então usamos a biblioteca pg e testamos a conexão.
+2. depois criamos funções para listar as tabelas e colunas do banco, porque queríamos entender a estrutura antes de manipular os dados.
+3. fizemos o menu interativo para deixar o uso mais fácil, permitindo escolher tabelas, inserir novas ou sair.
+4. em seguida, criamos a função que transforma arquivos CSV em tabelas, porque era a forma mais prática de carregar dados pro banco.
+5. depois partimos pra parte lógica: fizemos a verificação das dependências funcionais testando combinações de colunas com consultas SQL.
+6. vimos que havia repetições, então criamos a função para retirar as dependências redundantes usando fechamento de atributos.
+7. por fim, organizamos tudo e deixamos o programa rodando em loop no menu, pra repetir as ações sem precisar reiniciar.
+
+nosso raciocínio foi montar o código em etapas, cuidando da estrutura do banco e depois indo pra parte lógica das dependências.
+*/
+
 import readline from "readline";
 import pkg from "pg";
 import fs from "fs";
